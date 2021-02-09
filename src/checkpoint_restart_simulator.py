@@ -1,6 +1,6 @@
 # Checkpoint restart simulator
-#  version: 0.9(beta)
-#  date: 2021/02/02
+#  version: 1.0
+#  date: 2021/02/04
 
 import random
 import math
@@ -12,18 +12,18 @@ def main():
     L1ckpt_overhead = 200
     L2ckpt_latency = 6000
     ckptRestartTimes = [200, 6000]
-    failRates = [1e-05, 1e-06]
+    failRates = [1e-5, 1e-6]
     N = 1000
     SN = 1000000
     G = 4
     g = 1
-    alpha = 1e-4
+    alpha = 1e-3
     chk_interval = 1000
     n_check_ok = 1
 
     # set debug print flag
     #CheckpointRestartSimulator.debug_flag = True
-    #CheckpointRestartSimulator.debug_level = 2
+    #CheckpointRestartSimulator.debug_level = 2  # 1 or 2
     #CheckpointRestartSimulator.debug_flag_opt = True
 
     mode = 0 # 0:simulation(simulate_cr), 1:optimization(optimize_cr)
@@ -271,7 +271,7 @@ class CheckpointRestartSimulator():
         self.n_check_ok = 1
 
         self.cnt_check_ok = 0 # count of continuous ok at checking efficiency
-        self.cnt_failure = 0 # count of failure
+        self.cnt_failures = [0, 0, 0, 0, 0, 0] # count of failures
         self.cnt_group_failure = 0 # count of checkpoint level up (L1 -> L2)
         self.elapsed_time = 0
         self.time_compute_act = 0.0
@@ -379,7 +379,7 @@ class CheckpointRestartSimulator():
         return self.n_check_ok
 
     def get_cnt_failure(self):
-        return self.cnt_failure
+        return self.cnt_failures[0]
 
     def check_params(self):
         """ Check parameters and return result(True/False). """
@@ -540,7 +540,7 @@ class CheckpointRestartSimulator():
         self.time_compute = 0.0
         self.time_ckpt = [0.0, 0.0, 0.0]
         self.time_recovery = [0.0, 0.0, 0.0]
-        self.cnt_failure = 0 # count of failure
+        self.cnt_failures = [0, 0, 0, 0, 0, 0] # count of failures
         self.cnt_group_failure = 0 # count of Checkpoint Level up (L1->L2)
 
         if self.interval == 0:
@@ -549,7 +549,8 @@ class CheckpointRestartSimulator():
                 time_to_fail, failure_level = self.next_failure(self.fail_rates)
                 self.time_compute_act = time_to_fail
                 self.time_compute = time_to_fail
-                self.cnt_failure += 1
+                self.cnt_failures[0] += 1
+                self.cnt_failures[failure_level] += 1
                 self.note_print(
                     "interval and L2ckpt_freq are 0."
                     )
@@ -609,10 +610,10 @@ class CheckpointRestartSimulator():
                         prog_print = 0
                     if i < self.check_interval:
                         print("%8d, %10.8f, ----------, %10d"
-                                % (self.cnt_failure, eff_new, prog_print))
+                                % (self.cnt_failures[0], eff_new, prog_print))
                     else:
                         print("%8d, %10.8f, %6.4e, %10d"
-                            % (self.cnt_failure, eff_new, eff_delta, prog_print))
+                            % (self.cnt_failures[0], eff_new, eff_delta, prog_print))
                 if flag_exit:
                     self.warning_print("Simulation stopped! (" + exit_msg + ")")
                     self.warning_print("Efficiency was set to zero.")
@@ -633,19 +634,15 @@ class CheckpointRestartSimulator():
                 if state == 0: # compute state + ckpt state
                     current_time_to_fail -= self.interval
                     if current_time_to_fail < 0: # failure in comptue state
-                        self.cnt_failure += 1
+                        self.debug_print("failure in comptue state", 2)
+                        self.cnt_failures[0] += 1
+                        self.cnt_failures[failure_level] += 1
+                        self.cnt_failures[3] += 1 # failure count of comp state
                         # calculate surplus time of compute state
                         surplus_time = current_time_to_fail + self.interval
                         self.time_compute += surplus_time
-                        if failure_level == 1:
-                            if not node_info.set_failure_node():
-                                if node_info.get_n_spare_nodes() < 0:
-                                    flag_exit = True
-                                    exit_msg = "no spare node"
-                                    break
-                                self.cnt_group_failure += 1
-                                failure_level = 2
-                                self.debug_print("  LEVL 1 -> 2", 2)
+                        # register failure node
+                        node_info.set_failure_node()
                         state = failure_level
                         progress_bk = progress
                         progress = self.rollback_to(ckpt, failure_level)
@@ -664,18 +661,14 @@ class CheckpointRestartSimulator():
                     ckpt_level = 1
                     current_time_to_fail -= self.ckpt_overhead_times[ckpt_level]
                     if current_time_to_fail < 0: # failure in ckpt state
-                        self.cnt_failure += 1
+                        self.debug_print("failure in ckpt state", 2)
+                        self.cnt_failures[0] += 1
+                        self.cnt_failures[failure_level] += 1
+                        self.cnt_failures[4] += 1 # failure count of chpt state
                         self.time_ckpt[ckpt_level] += (current_time_to_fail
                             + self.ckpt_overhead_times[ckpt_level])
-                        if failure_level == 1:
-                            if not node_info.set_failure_node():
-                                if node_info.get_n_spare_nodes() < 0:
-                                    flag_exit = True
-                                    self.warning_print("no spare node")
-                                    break
-                                self.cnt_group_failure += 1
-                                failure_level = 2
-                                self.debug_print("  LEVL 1 -> 2", 2)
+                        # register failure node
+                        node_info.set_failure_node()
                         state = failure_level
                         progress_bk = progress
                         progress = self.rollback_to(ckpt, failure_level)
@@ -714,23 +707,18 @@ class CheckpointRestartSimulator():
                 else: # recovery state
                     current_time_to_fail -= self.restart_times[state]
                     if current_time_to_fail < 0: # failure in recovery state
-                        self.cnt_failure += 1
+                        self.debug_print("failure in recovery state", 2)
+                        self.cnt_failures[0] += 1
+                        self.cnt_failures[failure_level] += 1
+                        self.cnt_failures[5] += 1 # failure count of recv state
                         self.time_recovery[state] += (current_time_to_fail
                             + self.restart_times[state])
-                        if failure_level == 1:
-                            if not node_info.set_failure_node():
-                                if node_info.get_n_spare_nodes() < 0:
-                                    flag_exit = True
-                                    self.warning_print("no spare node")
-                                    eff = 0.0
-                                    break
-                                self.cnt_group_failure += 1
-                                state = 2
-                                self.debug_print("  LEVL 1 -> 2", 2)
-                        if state == failure_level and not state == 2:
-                            # if failure level is same and the level is not 2,
-                            # then increase recovery level
-                            state += 1
+                        # register failure node
+                        rtc = node_info.set_failure_node()
+                        if state == 1 and not rtc:
+                            self.cnt_group_failure += 1
+                            state = 2
+                            self.debug_print("  LEVL 1 -> 2", 2)
                         progress_bk = progress
                         progress = self.rollback_to(ckpt, state)
                         if progress is None:
@@ -746,6 +734,15 @@ class CheckpointRestartSimulator():
                         break
                     # no failure in recovery state
                     self.time_recovery[state] += self.restart_times[state]
+
+                    # initialize node state
+                    node_info.init_failure_nodes()
+                    self.debug_print("Initialize node state.", 2)
+                    if node_info.get_n_spare_nodes() < 0:
+                        flag_exit = True
+                        exit_msg = "no spare node"
+                        break
+
                     state = 0
                     self.debug_print("  SUCC: NEXT=" + str(progress)
                         + " STAT=" + str(state)
@@ -768,10 +765,10 @@ class CheckpointRestartSimulator():
                         prog_print = 0
                     if i < self.check_interval:
                         print("%8d, %10.8f, ----------, %10d"
-                            % (self.cnt_failure, eff_new, prog_print))
+                            % (self.cnt_failures[0], eff_new, prog_print))
                     else:
                         print("%8d, %10.8f, %6.4e, %10d"
-                            % (self.cnt_failure, eff_new, eff_delta, prog_print))
+                            % (self.cnt_failures[0], eff_new, eff_delta, prog_print))
                 eff = eff_new
                 if eff_delta < self.alpha:
                     self.cnt_check_ok += 1
@@ -780,7 +777,12 @@ class CheckpointRestartSimulator():
                 else:
                     self.cnt_check_ok = 0
 
-        self.debug_print("failure count=%d" % self.cnt_failure)
+        self.debug_print(
+            "failure count=%d (L1=%d, L2=%d, COMP=%d, CKPT=%d, RECV=%d)" %
+                (self.cnt_failures[0], self.cnt_failures[1],
+                 self.cnt_failures[2], self.cnt_failures[3],
+                 self.cnt_failures[4], self.cnt_failures[5])
+            )
         self.debug_print(
             "Checkpoint level up (L1 -> L2) count=%d" % self.cnt_group_failure
             )
@@ -1083,7 +1085,7 @@ class CheckpointRestartSimulator():
                     interval_best = interval
         self.interval = interval_best
         self.L2ckpt_freq = L2ckpt_freq_best
-        self.debug_print("initial interval = %d, initial L2ckpt_freq = %d"
+        self.debug_print_opt("initial interval = %d, initial L2ckpt_freq = %d"
             % (self.interval, self.L2ckpt_freq))
 
     def move_state(self, delta, mode):
@@ -1182,7 +1184,6 @@ class NodeManagement():
         self.group = []
         self.node = []
         self.failure_nodes = []
-
         node_no = 0
         group_no = 0
         while node_no < self.n_nodes:
@@ -1191,9 +1192,9 @@ class NodeManagement():
                 break
             self.group.append({})
             self.group[group_no]["n_broken"] = 0
-            self.group[group_no]["member"] = []
+            #self.group[group_no]["member"] = []
             for i in range(self.n_nodes_in_group):
-                self.group[group_no]["member"].append(node_no)
+                #self.group[group_no]["member"].append(node_no)
                 self.node.append({})
                 self.node[node_no]["state"] = True
                 self.node[node_no]["group"] = group_no
@@ -1212,28 +1213,31 @@ class NodeManagement():
     def get_disability_tolerance(self):
         return self.disability_tolerance
 
-    def get_failure_node_history(self):
-        return self.failure_nodes
+    def init_failure_nodes(self):
+        """ replace all broken nodes and initialize states """
+        for i in range(len(self.group)):
+            self.group[i]["n_broken"] = 0
+        for i in range(len(self.failure_nodes)):
+            node_no = self.failure_nodes[i]
+            self.node[node_no]["state"] = True
+        self.n_spare_nodes -= len(self.failure_nodes)
+        self.failure_nodes = []
 
     def set_failure_node(self):
         if self.disability_tolerance == self.n_nodes_in_group:
             return True
-        for i in range(10000000):
+        for i in range(1000000): # 1000000: to avoid endless loop
             failure_node_no = random.randint(0, self.n_nodes - 1)
             if self.node[failure_node_no]["state"]:
                 self.node[failure_node_no]["state"] = False
                 self.failure_nodes.append(failure_node_no)
                 break
-        group_no = int(failure_node_no / self.n_nodes_in_group)
+            if len(self.failure_nodes) >= self.n_nodes:
+                break
+        #group_no = int(failure_node_no / self.n_nodes_in_group)
         group_no = self.node[failure_node_no]["group"]
         self.group[group_no]["n_broken"] += 1
         if self.group[group_no]["n_broken"] > self.disability_tolerance:
-            # replace broken nodes and initialize states
-            self.n_spare_nodes -= (self.disability_tolerance + 1)
-            self.group[group_no]["n_broken"] = 0
-            for i in range(len(self.group[group_no]["member"])):
-                node_no = self.group[group_no]["member"][i]
-                self.node[node_no]["state"] = True
             return False
         return True
 
