@@ -26,7 +26,7 @@ def main():
     #CheckpointRestartSimulator.debug_level = 2  # 1 or 2
     #CheckpointRestartSimulator.debug_flag_opt = True
 
-    mode = 0 # 0:simulation(simulate_cr), 1:optimization(optimize_cr)
+    mode = 1 # 0:simulation(simulate_cr), 1:optimization(optimize_cr)
 
     # simulation
     if mode == 0:
@@ -862,6 +862,7 @@ class CheckpointRestartSimulator():
                 if cnt % log_interval == 0:
                     print("%8.3f    %6f     %5d    %3d" %
                         (T, efficiency, self.interval, self.L2ckpt_freq))
+#                    print(self.time_compute_act, self.time_compute, self.time_ckpt[1], self.time_recovery[1], self.time_ckpt[2], self.time_recovery[2])
             interval_bk = self.interval
             L2ckpt_freq_bk = self.L2ckpt_freq
 
@@ -899,7 +900,8 @@ class CheckpointRestartSimulator():
 
         if log_interval > 0:
             print("%8.3f    %6f     %5d    %3d" %
-                (T, efficiency, self.interval, self.L2ckpt_freq))
+                  (T, efficiency, self.interval, self.L2ckpt_freq))
+#            print(self.time_compute_act, self.time_compute, self.time_ckpt[1], self.time_recovery[1], self.time_ckpt[2], self.time_recovery[2])
         self.interval = interval_best
         self.L2ckpt_freq = L2ckpt_freq_best
         efficiency = self.simulate()
