@@ -1,7 +1,7 @@
 from checkpoint_restart_simulator import *
 
-def main():
 
+def main():
     mode = 0
     settings = 0
 

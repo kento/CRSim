@@ -28,7 +28,6 @@ log_interval(int):
 def opt(args):
     failure_rates = [1/args.mtbf[0], 1/args.mtbf[1]]
     n_groups = int(args.nodes / args.group_size)
-    print (failure_rates)
 #   def optimize_cr(
 #                    L1ckpt_overhead, L2ckpt_latency,
 #                    ckptRestartTimes, failRates, N, SN, G, g, alpha,
