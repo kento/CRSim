@@ -3,7 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 Welcome to CRSim's documentation!
-=================================
 
 .. toctree::
    :maxdepth: 2
@@ -12,7 +11,6 @@ Welcome to CRSim's documentation!
 
 
 Indices and tables
-==================
 
 .. image:: /media/image.png
    :width: 11.6913in
@@ -34,7 +32,6 @@ Function <#simulate_cr-function>`__\ `2 <#simulate_cr-function>`__
 function <#optimize_cr-function>`__\ `4 <#optimize_cr-function>`__
 
 summary
-=======
 
 (a) simulate_cr function:.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -382,26 +379,3 @@ Because the interval has a wide range, when increasing or decreasing it by a fix
 
 The above state transition methods can be changed to any of the above methods with a simple source code modification. The 2% and 5% numbers can also be changed only by modifying the corresponding parts of the source code.
 
-=======
-.. CRSim documentation master file, created by
-   sphinx-quickstart on Thu Aug 12 15:05:50 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to CRSim's documentation!!
-=================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
->>>>>>> main
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
