@@ -533,7 +533,7 @@ Return value (output): tuple type data=(X,A,B,C,D,E,F, interval, L2ckpt_freq)
 
 +-----------+-------------------------------------------------+-------+
 | **argument| **Description.**                                | **type|
-| name**    |                                                 | **    |
+| name**    |                                                 |**     |
 +===========+=================================================+=======+
 | **an      | Efficiency = A/(B+C+D+F) at interval,           |       |
 | unknown** | L2ckpt_freq of optimization results             | float |
