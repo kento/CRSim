@@ -204,37 +204,36 @@ Argument (Input)
 
 Return value (output): tuple type data=(X,A,B,C,D,E,F, interval, L2ckpt_freq)
 
-+-----------+-------------------------------------------------+---------+
-| **argument| **Description.**                                | **type**|
-| name**    |                                                 |         |
-+===========+=================================================+=========+
-| **an      | Efficiency = A/(B+C+D+F) at interval,           |         |
-| unknown** | L2ckpt_freq of optimization results             | float   |
-+-----------+-------------------------------------------------+---------+
-| **A**     | interval of optimization results, real          |         |
-|           | computation time at L2ckpt_freq                 | float   |
-+-----------+-------------------------------------------------+---------+
-| **B**     | interval of optimization results, time spent in |         |
-|           | the computation state at L2ckpt_freq            | float   |
-+-----------+-------------------------------------------------+---------+
-| **C**     | interval of optimization results, time spent on |         |
-|           | L1 checkpoint at L2ckpt_freq                    | float   |
-+-----------+-------------------------------------------------+---------+
-| **D**     | interval of optimization results, time spent    |         |
-|           | for L1 recovery at L2ckpt_freq                  | float   |
-+-----------+-------------------------------------------------+---------+
-| **E**     | interval of optimization results, time spent on |         |
-|           | L2 checkpoints during L2ckpt_freq               | float   |
-+-----------+-------------------------------------------------+---------+
-| **f**     | interval of optimization results, time spent    |         |
-|           | for L2 recovery at L2ckpt_freq                  | float   |
-+-----------+-------------------------------------------------+---------+
-| **        | L1 checkpoint interval for optimization results |         |
-| interval**|                                                 |   int   |
-+-----------+-------------------------------------------------+---------+
-| **L2ck    | Frequency of L2 checkpoints for optimization    |         |
-| pt_freq** | results                                         |   int   |
-+-----------+-------------------------------------------------+---------+
++-------------------+-------------------------------------------------+---------+
+| **argument name** | **Description.**                                | **type**|
++===================+=================================================+=========+
+| **an unknown**    | Efficiency = A/(B+C+D+F) at interval,           |         |
+|                   | L2ckpt_freq of optimization results             | float   |
++-------------------+-------------------------------------------------+---------+
+| **A**             | interval of optimization results, real          |         |
+|                   | computation time at L2ckpt_freq                 | float   |
++-------------------+-------------------------------------------------+---------+
+| **B**             | interval of optimization results, time spent in |         |
+|                   | the computation state at L2ckpt_freq            | float   |
++-------------------+-------------------------------------------------+---------+
+| **C**             | interval of optimization results, time spent on |         |
+|                   | L1 checkpoint at L2ckpt_freq                    | float   |
++-------------------+-------------------------------------------------+---------+
+| **D**             | interval of optimization results, time spent    |         |
+|                   | for L1 recovery at L2ckpt_freq                  | float   |
++-------------------+-------------------------------------------------+---------+
+| **E**             | interval of optimization results, time spent on |         |
+|                   | L2 checkpoints during L2ckpt_freq               | float   |
++-------------------+-------------------------------------------------+---------+
+| **f**             | interval of optimization results, time spent    |         |
+|                   | for L2 recovery at L2ckpt_freq                  | float   |
++-------------------+-------------------------------------------------+---------+
+| **interval**      | L1 checkpoint interval for optimization results |         |
+|                   |                                                 |   int   |
++-------------------+-------------------------------------------------+---------+
+| **L2ckpt_freq**   | Frequency of L2 checkpoints for optimization    |         |
+|                   | results                                         |   int   |
++-------------------+-------------------------------------------------+---------+
 
 Optimization Methodology
 ~~~~~~~~~~~~~~~~~~~~~~~~
