@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/crsim/badge/?version=latest)](https://crsim.readthedocs.io/ja/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/crsim/badge/?version=latest)](https://crsim.readthedocs.io/en/latest/?badge=latest)
       
 # CRSim
 Checkpoint-Restart Simulator
